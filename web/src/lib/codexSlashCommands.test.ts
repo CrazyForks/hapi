@@ -2,14 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { findUnsupportedCodexBuiltinSlashCommand, getBuiltinSlashCommands } from './codexSlashCommands'
 
 describe('getBuiltinSlashCommands', () => {
-    it('does not expose codex built-ins in remote web mode', () => {
-        expect(getBuiltinSlashCommands('codex')).toEqual([])
+    it('exposes HAPI-supported codex built-ins in remote web mode', () => {
+        expect(getBuiltinSlashCommands('codex').map((command) => command.name)).toEqual(expect.arrayContaining([
+            'plan',
+            'status',
+            'execute',
+            'effort',
+            'permission',
+        ]))
     })
 })
 
 describe('findUnsupportedCodexBuiltinSlashCommand', () => {
     it('detects unsupported codex built-ins', () => {
-        expect(findUnsupportedCodexBuiltinSlashCommand('/status', [])).toBe('status')
         expect(findUnsupportedCodexBuiltinSlashCommand('  /diff ', [])).toBe('diff')
     })
 
