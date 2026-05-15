@@ -969,6 +969,23 @@ describe('codexRemoteLauncher', () => {
         });
     });
 
+    it('recognizes alternate collaboration mode list envelopes', async () => {
+        harness.collaborationModeResponse = { collaborationModes: [{ id: 'plan' }] };
+        const { session } = createSessionStub(['plan this'], {
+            permissionMode: 'default',
+            collaborationMode: 'plan',
+            model: 'gpt-5.4'
+        });
+
+        const exitReason = await codexRemoteLauncher(session as never);
+
+        expect(exitReason).toBe('exit');
+        expect(harness.startTurnParams).toHaveLength(1);
+        expect(harness.startTurnParams[0]?.collaborationMode).toMatchObject({
+            mode: 'plan'
+        });
+    });
+
     it('retries plan turns without collaborationMode when the runtime rejects the field', async () => {
         harness.startTurnErrors.push(new Error('unknown field collaborationMode'));
         const { session, sessionEvents } = createSessionStub(['plan this'], {
@@ -1036,7 +1053,7 @@ describe('codexRemoteLauncher', () => {
         });
     });
 
-    it('falls back to a normal turn when collaborationMode/list omits plan', async () => {
+    it('still attempts plan mode when collaborationMode/list omits plan', async () => {
         harness.collaborationModeResponse = { data: [{ mode: 'default' }] };
         const { session, sessionEvents } = createSessionStub(['plan this'], {
             permissionMode: 'default',
@@ -1048,9 +1065,10 @@ describe('codexRemoteLauncher', () => {
 
         expect(exitReason).toBe('exit');
         expect(harness.startTurnParams).toHaveLength(1);
-        expect(harness.startTurnParams[0]?.collaborationMode).toBeUndefined();
-        expect(harness.startTurnParams[0]?.model).toBe('gpt-5.4');
-        expect(sessionEvents).toContainEqual({
+        expect(harness.startTurnParams[0]?.collaborationMode).toMatchObject({
+            mode: 'plan'
+        });
+        expect(sessionEvents).not.toContainEqual({
             type: 'message',
             message: 'Plan mode is not supported by this Codex runtime. Sent as a normal turn instead.'
         });

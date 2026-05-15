@@ -53,7 +53,10 @@ export interface CollaborationModeListItem {
 }
 
 export interface CollaborationModeListResponse {
-    data?: CollaborationModeListItem[];
+    data?: Array<CollaborationModeListItem | string>;
+    modes?: Array<CollaborationModeListItem | string>;
+    collaborationModes?: Array<CollaborationModeListItem | string>;
+    items?: Array<CollaborationModeListItem | string>;
     [key: string]: unknown;
 }
 
