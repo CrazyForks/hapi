@@ -1,25 +1,13 @@
 import { logger } from '@/ui/logger'
 import { readdir, stat } from 'fs/promises'
 import { basename, join, resolve } from 'path'
+import type { DirectoryEntry, ListDirectoryResponse } from '@hapi/protocol/apiTypes'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { validatePath } from '../pathSecurity'
 import { getErrorMessage, rpcError } from '../rpcResponses'
 
 interface ListDirectoryRequest {
     path: string
-}
-
-interface DirectoryEntry {
-    name: string
-    type: 'file' | 'directory' | 'other'
-    size?: number
-    modified?: number
-}
-
-interface ListDirectoryResponse {
-    success: boolean
-    entries?: DirectoryEntry[]
-    error?: string
 }
 
 interface GetDirectoryTreeRequest {

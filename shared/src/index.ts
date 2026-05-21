@@ -1,3 +1,4 @@
+export * from './apiTypes'
 export * from './messages'
 export * from './buildInfo'
 export * from './flavors'

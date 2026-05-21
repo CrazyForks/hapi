@@ -2,6 +2,7 @@ import { logger } from '@/ui/logger'
 import { mkdir, mkdtemp, rm, writeFile } from 'fs/promises'
 import { join, resolve, sep } from 'path'
 import { rmSync } from 'node:fs'
+import type { DeleteUploadResponse, UploadFileResponse } from '@hapi/protocol/apiTypes'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { getErrorMessage, rpcError } from '../rpcResponses'
 import { getHapiBlobsDir } from '@/constants/uploadPaths'
@@ -13,20 +14,9 @@ interface UploadFileRequest {
     mimeType: string
 }
 
-interface UploadFileResponse {
-    success: boolean
-    path?: string
-    error?: string
-}
-
 interface DeleteUploadRequest {
     sessionId?: string
     path: string
-}
-
-interface DeleteUploadResponse {
-    success: boolean
-    error?: string
 }
 
 const uploadDirs = new Map<string, string>()

@@ -1,85 +1,36 @@
 import type { AgentFlavor, CodexCollaborationMode, PermissionMode } from '@hapi/protocol/types'
+import type {
+    CodexModelSummary,
+    CodexModelsResponse,
+    CommandResponse,
+    DeleteUploadResponse,
+    DirectoryEntry,
+    FileReadResponse,
+    GeneratedImageResponse,
+    ListDirectoryResponse,
+    OpencodeModelsResponse,
+    OpencodeModelSummary,
+    PathExistsResponse,
+    UploadFileResponse
+} from '@hapi/protocol/apiTypes'
 import type { Server } from 'socket.io'
 import type { RpcRegistry } from '../socket/rpcRegistry'
 
 const DEFAULT_RPC_TIMEOUT_MS = 30_000
 const MODEL_LIST_RPC_TIMEOUT_MS = 120_000
 
-export type RpcCommandResponse = {
-    success: boolean
-    stdout?: string
-    stderr?: string
-    exitCode?: number
-    error?: string
-}
-
-export type RpcReadFileResponse = {
-    success: boolean
-    content?: string
-    error?: string
-}
-
-export type RpcGeneratedImageResponse = {
-    success: boolean
-    content?: string
-    mimeType?: string
-    fileName?: string
-    error?: string
-}
-
-export type RpcUploadFileResponse = {
-    success: boolean
-    path?: string
-    error?: string
-}
-
-export type RpcDeleteUploadResponse = {
-    success: boolean
-    error?: string
-}
-
-export type RpcDirectoryEntry = {
-    name: string
-    type: 'file' | 'directory' | 'other'
-    size?: number
-    modified?: number
-}
-
-export type RpcListDirectoryResponse = {
-    success: boolean
-    entries?: RpcDirectoryEntry[]
-    error?: string
-}
-
-export type RpcPathExistsResponse = {
-    exists: Record<string, boolean>
-}
-
-export type RpcCodexModel = {
-    id: string
-    displayName: string
-    isDefault: boolean
-    defaultReasoningEffort?: string | null
-    supportedReasoningEfforts?: string[]
-}
-
-export type RpcListCodexModelsResponse = {
-    success: boolean
-    models?: RpcCodexModel[]
-    error?: string
-}
-
-export type RpcOpencodeModel = {
-    modelId: string
-    name?: string
-}
-
-export type RpcListOpencodeModelsResponse = {
-    success: boolean
-    availableModels?: RpcOpencodeModel[]
-    currentModelId?: string | null
-    error?: string
-}
+export type RpcCommandResponse = CommandResponse
+export type RpcReadFileResponse = FileReadResponse
+export type RpcGeneratedImageResponse = GeneratedImageResponse
+export type RpcUploadFileResponse = UploadFileResponse
+export type RpcDeleteUploadResponse = DeleteUploadResponse
+export type RpcDirectoryEntry = DirectoryEntry
+export type RpcListDirectoryResponse = ListDirectoryResponse
+export type RpcPathExistsResponse = PathExistsResponse
+export type RpcCodexModel = CodexModelSummary
+export type RpcListCodexModelsResponse = CodexModelsResponse
+export type RpcOpencodeModel = OpencodeModelSummary
+export type RpcListOpencodeModelsResponse = OpencodeModelsResponse
 
 export class RpcGateway {
     constructor(

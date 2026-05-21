@@ -2,6 +2,7 @@ import { logger } from '@/ui/logger'
 import { readFile, stat, writeFile } from 'fs/promises'
 import { createHash } from 'crypto'
 import { resolve } from 'path'
+import type { FileReadResponse, GeneratedImageResponse } from '@hapi/protocol/apiTypes'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { validatePath } from '../pathSecurity'
 import { getGeneratedImage } from '../generatedImages'
@@ -11,23 +12,13 @@ interface ReadFileRequest {
     path: string
 }
 
-interface ReadFileResponse {
-    success: boolean
-    content?: string
-    error?: string
-}
+type ReadFileResponse = FileReadResponse
 
 interface ReadGeneratedImageRequest {
     id: string
 }
 
-interface ReadGeneratedImageResponse {
-    success: boolean
-    content?: string
-    mimeType?: string
-    fileName?: string
-    error?: string
-}
+type ReadGeneratedImageResponse = GeneratedImageResponse
 
 interface WriteFileRequest {
     path: string

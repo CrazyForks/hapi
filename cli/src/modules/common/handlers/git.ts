@@ -1,5 +1,6 @@
 import { execFile, type ExecFileOptions } from 'child_process'
 import { promisify } from 'util'
+import type { CommandResponse } from '@hapi/protocol/apiTypes'
 import type { RpcHandlerManager } from '@/api/rpc/RpcHandlerManager'
 import { validatePath } from '../pathSecurity'
 import { rpcError } from '../rpcResponses'
@@ -24,13 +25,7 @@ interface GitDiffFileRequest {
     timeout?: number
 }
 
-interface GitCommandResponse {
-    success: boolean
-    stdout?: string
-    stderr?: string
-    exitCode?: number
-    error?: string
-}
+type GitCommandResponse = CommandResponse
 
 function resolveCwd(requestedCwd: string | undefined, workingDirectory: string): { cwd: string; error?: string } {
     const cwd = requestedCwd ?? workingDirectory

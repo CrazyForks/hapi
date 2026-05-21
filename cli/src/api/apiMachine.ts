@@ -9,6 +9,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve as resolvePath }
 import { logger } from '@/ui/logger'
 import { configuration } from '@/configuration'
 import type { Update, UpdateMachineBody } from '@hapi/protocol'
+import type { MachineDirectoryEntry, MachineListDirectoryResponse, PathExistsResponse } from '@hapi/protocol/apiTypes'
 import type { RunnerState, Machine, MachineMetadata } from './types'
 import { RunnerStateSchema, MachineMetadataSchema } from './types'
 import { backoff } from '@/utils/time'
@@ -68,26 +69,8 @@ interface PathExistsRequest {
     paths: string[]
 }
 
-interface PathExistsResponse {
-    exists: Record<string, boolean>
-}
-
 interface ListMachineDirectoryRequest {
     path: string
-}
-
-interface ListMachineDirectoryEntry {
-    name: string
-    type: 'file' | 'directory' | 'other'
-    size?: number
-    modified?: number
-    isGitRepo?: boolean
-}
-
-interface ListMachineDirectoryResponse {
-    success: boolean
-    entries?: ListMachineDirectoryEntry[]
-    error?: string
 }
 
 function normalizeWorkspaceRoots(paths?: string[]): string[] | undefined {
@@ -163,7 +146,7 @@ export class ApiMachineClient {
             return { exists }
         })
 
-        this.rpcHandlerManager.registerHandler<ListMachineDirectoryRequest, ListMachineDirectoryResponse>('list-directory', async (params) => {
+        this.rpcHandlerManager.registerHandler<ListMachineDirectoryRequest, MachineListDirectoryResponse>('list-directory', async (params) => {
             if (!this.normalizedWorkspaceRoots?.length) {
                 return { success: false, error: 'Workspace browsing is not enabled for this machine' }
             }
@@ -185,7 +168,7 @@ export class ApiMachineClient {
                 }
 
                 const dirEntries = await readdir(targetPath, { withFileTypes: true })
-                const entries: ListMachineDirectoryEntry[] = []
+                const entries: MachineDirectoryEntry[] = []
 
                 await Promise.all(dirEntries.map(async (entry) => {
                     if (entry.name.startsWith('.')) return

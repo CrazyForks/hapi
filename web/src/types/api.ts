@@ -7,6 +7,24 @@ import type {
 } from '@hapi/protocol/types'
 
 export type {
+    CodexModelsResponse,
+    CodexModelSummary,
+    CommandResponse,
+    DeleteUploadResponse,
+    DirectoryEntry,
+    FileReadResponse,
+    GitCommandResponse,
+    ListDirectoryResponse,
+    MachineDirectoryEntry,
+    MachineListDirectoryResponse,
+    MachinePathsExistsResponse,
+    OpencodeModelsResponse,
+    OpencodeModelSummary,
+    PathExistsResponse,
+    UploadFileResponse
+} from '@hapi/protocol/apiTypes'
+
+export type {
     AgentState,
     AttachmentMetadata,
     CodexCollaborationMode,
@@ -100,33 +118,10 @@ export type MessagesResponse = {
 }
 
 export type MachinesResponse = { machines: Machine[] }
-export type MachinePathsExistsResponse = { exists: Record<string, boolean> }
-
-export type MachineDirectoryEntry = {
-    name: string
-    type: 'file' | 'directory' | 'other'
-    size?: number
-    modified?: number
-    isGitRepo?: boolean
-}
-
-export type MachineListDirectoryResponse = {
-    success: boolean
-    entries?: MachineDirectoryEntry[]
-    error?: string
-}
 
 export type SpawnResponse =
     | { type: 'success'; sessionId: string }
     | { type: 'error'; message: string }
-
-export type GitCommandResponse = {
-    success: boolean
-    stdout?: string
-    stderr?: string
-    exitCode?: number
-    error?: string
-}
 
 export type FileSearchItem = {
     fileName: string
@@ -138,36 +133,6 @@ export type FileSearchItem = {
 export type FileSearchResponse = {
     success: boolean
     files?: FileSearchItem[]
-    error?: string
-}
-
-export type DirectoryEntry = {
-    name: string
-    type: 'file' | 'directory' | 'other'
-    size?: number
-    modified?: number
-}
-
-export type ListDirectoryResponse = {
-    success: boolean
-    entries?: DirectoryEntry[]
-    error?: string
-}
-
-export type FileReadResponse = {
-    success: boolean
-    content?: string
-    error?: string
-}
-
-export type UploadFileResponse = {
-    success: boolean
-    path?: string
-    error?: string
-}
-
-export type DeleteUploadResponse = {
-    success: boolean
     error?: string
 }
 
@@ -212,32 +177,6 @@ export type SkillSummary = {
 export type SkillsResponse = {
     success: boolean
     skills?: SkillSummary[]
-    error?: string
-}
-
-export type CodexModelSummary = {
-    id: string
-    displayName: string
-    isDefault: boolean
-    defaultReasoningEffort?: string | null
-    supportedReasoningEfforts?: string[]
-}
-
-export type CodexModelsResponse = {
-    success: boolean
-    models?: CodexModelSummary[]
-    error?: string
-}
-
-export type OpencodeModelSummary = {
-    modelId: string
-    name?: string
-}
-
-export type OpencodeModelsResponse = {
-    success: boolean
-    availableModels?: OpencodeModelSummary[]
-    currentModelId?: string | null
     error?: string
 }
 
