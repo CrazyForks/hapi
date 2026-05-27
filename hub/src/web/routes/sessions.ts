@@ -279,6 +279,9 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
         if (!isPermissionModeAllowedForFlavor(mode, flavor)) {
             return c.json({ error: 'Invalid permission mode for session flavor' }, 400)
         }
+        if (flavor === 'opencode' && mode === 'plan' && sessionResult.session.agentState?.controlledByUser === true) {
+            return c.json({ error: 'OpenCode plan mode is only supported for remote sessions' }, 409)
+        }
 
         try {
             await engine.applySessionConfig(sessionResult.sessionId, { permissionMode: mode })
@@ -369,11 +372,11 @@ export function createSessionsRoutes(getSyncEngine: () => SyncEngine | null): Ho
         }
 
         const flavor = sessionResult.session.metadata?.flavor ?? 'claude'
-        if (flavor !== 'codex') {
-            return c.json({ error: 'Model reasoning effort is only supported for Codex sessions' }, 400)
+        if (flavor !== 'codex' && flavor !== 'opencode') {
+            return c.json({ error: 'Model reasoning effort is only supported for Codex and OpenCode sessions' }, 400)
         }
         if (sessionResult.session.agentState?.controlledByUser === true) {
-            return c.json({ error: 'Model reasoning effort can only be changed for remote Codex sessions' }, 409)
+            return c.json({ error: 'Model reasoning effort can only be changed for remote sessions' }, 409)
         }
 
         const body = await c.req.json().catch(() => null)
