@@ -395,6 +395,8 @@ function hasAbortableAgentRun(blocks: readonly ChatBlock[]): boolean {
 type SessionChatProps = {
     api: ApiClient
     session: Session
+    cursorChatOnDisk?: boolean
+    reopenDisabledReason?: string
     messages: DecryptedMessage[]
     pendingMessages?: DecryptedMessage[]
     messagesWarning: string | null
@@ -452,7 +454,11 @@ function SessionChatInner(props: SessionChatProps) {
     const { t } = useTranslation()
     const navigate = useNavigate()
     const sessionInactive = !props.session.active
-    const inactiveCanResume = inactiveSessionCanResume(props.session, props.messages.length)
+    const inactiveCanResume = inactiveSessionCanResume(
+        props.session,
+        props.messages.length,
+        props.cursorChatOnDisk
+    )
     const terminalSupported = isRemoteTerminalSupported(props.session.metadata)
     const normalizedCacheRef = useRef<Map<string, { source: DecryptedMessage; normalized: NormalizedMessage | null }>>(new Map())
     const blocksByIdRef = useRef<Map<string, ChatBlock>>(new Map())
@@ -1217,6 +1223,8 @@ function SessionChatInner(props: SessionChatProps) {
                 onToggleOutline={handleToggleOutline}
                 outlineActive={outlineOpen}
                 api={props.api}
+                canReopen={inactiveCanResume}
+                reopenDisabledReason={props.reopenDisabledReason}
                 onSessionDeleted={props.onBack}
                 onSessionReopened={(newSessionId) => {
                     navigate({

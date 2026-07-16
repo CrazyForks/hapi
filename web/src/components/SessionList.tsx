@@ -26,6 +26,7 @@ import { getSessionTitle } from '@/lib/sessionTitle'
 import type { Machine } from '@/types/api'
 import { getMachinePlatform, presentMachineHealth } from '@/lib/machineHealth'
 import { MachineGroupHeader } from '@/components/MachineGroupHeader'
+import { useCursorChatStoreStatus } from '@/hooks/queries/useCursorChatStoreStatus'
 
 type SessionGroup = {
     key: string
@@ -596,6 +597,22 @@ function SessionItem(props: {
     const [renameOpen, setRenameOpen] = useState(false)
     const [archiveOpen, setArchiveOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const {
+        status: cursorChatStoreStatus,
+        isApplicable: cursorChatStoreApplicable,
+        error: cursorChatStoreError,
+    } = useCursorChatStoreStatus({
+        api,
+        session: s,
+        enabled: menuOpen
+    })
+    const cursorReopenDisabledReason = cursorChatStoreApplicable && cursorChatStoreStatus?.onDisk !== true
+        ? cursorChatStoreError
+            ? t('session.action.reopenCursorCheckFailed')
+            : cursorChatStoreStatus?.onDisk === false
+                ? t('session.action.reopenCursorMissing')
+                : t('session.action.reopenCursorChecking')
+        : undefined
 
     const { archiveSession, reopenSession, renameSession, deleteSession, isPending } = useSessionActions(
         api,
@@ -732,7 +749,8 @@ function SessionItem(props: {
                 sessionActive={s.active}
                 onRename={() => setRenameOpen(true)}
                 onArchive={() => setArchiveOpen(true)}
-                onReopen={handleReopen}
+                onReopen={cursorReopenDisabledReason ? undefined : handleReopen}
+                reopenDisabledReason={cursorReopenDisabledReason}
                 onDelete={() => setDeleteOpen(true)}
                 anchorPoint={menuAnchorPoint}
             />

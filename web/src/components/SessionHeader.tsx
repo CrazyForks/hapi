@@ -92,6 +92,8 @@ export function SessionHeader(props: {
     onToggleOutline?: () => void
     outlineActive?: boolean
     api: ApiClient | null
+    canReopen?: boolean
+    reopenDisabledReason?: string
     onSessionDeleted?: () => void
     onSessionReopened?: (newSessionId: string) => void
 }) {
@@ -258,7 +260,8 @@ export function SessionHeader(props: {
                 onRename={() => setRenameOpen(true)}
                 onExport={() => setExportOpen(true)}
                 onArchive={() => setArchiveOpen(true)}
-                onReopen={handleReopen}
+                onReopen={props.canReopen === false ? undefined : handleReopen}
+                reopenDisabledReason={props.reopenDisabledReason}
                 onDelete={() => setDeleteOpen(true)}
                 anchorPoint={menuAnchorPoint}
                 menuId={menuId}
