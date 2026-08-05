@@ -555,7 +555,14 @@ export const SyncEventSchema = z.discriminatedUnion('type', [
         type: z.literal('connection-changed'),
         data: z.object({
             status: z.string(),
-            subscriptionId: z.string().optional()
+            subscriptionId: z.string().optional(),
+            /**
+             * Reconnect verdict. 'ok' means the hub replayed every event the
+             * client missed (sent right after this one), so the client can skip
+             * its full refetch. 'gap' (or absence, on older hubs) means the
+             * client must resync from REST.
+             */
+            resume: z.enum(['ok', 'gap']).optional()
         }).optional()
     })
 ])
