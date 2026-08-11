@@ -8,6 +8,10 @@
  */
 
 import { isKnownFlavor, type LocalResumeTarget, type ResumableSession, type SessionEndReason } from '@hapi/protocol'
+import {
+    cliBinaryUpdatedOnDisk,
+    isMachineCapabilitySkewed,
+} from '@hapi/protocol/runnerCapabilities'
 import type { CursorChatStoreStatus, CursorMigrateOutcome, CursorMigrateToAcpRequest, MessageDeliveryMode, MessagesResponse, QueuedStateResponse, SlashCommandsResponse } from '@hapi/protocol/apiTypes'
 import type { AgentFlavor, CodexCollaborationMode, CopilotAgentMode, DecryptedMessage, PermissionMode, Session, SyncEvent } from '@hapi/protocol/types'
 import { unwrapRoleWrappedRecordEnvelope } from '@hapi/protocol/messages'
@@ -196,7 +200,7 @@ export class SyncEngine {
         private readonly store: Store,
         private readonly io: Server,
         rpcRegistry: RpcRegistry,
-        sseManager: SSEManager
+        sseManager: SSEManager,
     ) {
         this.eventPublisher = new EventPublisher(sseManager, (event) => this.resolveNamespace(event))
         this.sessionCache = new SessionCache(store, this.eventPublisher)
@@ -773,7 +777,7 @@ export class SyncEngine {
         }
     }
 
-async uploadScratchlistAttachment(
+    async uploadScratchlistAttachment(
         sessionId: string,
         namespace: string,
         filename: string,
@@ -872,6 +876,42 @@ async uploadScratchlistAttachment(
 
     handleMachineAlive(payload: { machineId: string; time: number; health?: unknown }): void {
         this.machineCache.handleMachineAlive(payload)
+    }
+
+    /**
+     * Manual stop-runner for supervised hosts only (banner Restart).
+     * Detached `hapi runner start` has no supervisor — stop would leave the
+     * host offline. Require `metadata.supervisedRestart` (HAPI_RUNNER_SUPERVISED=1).
+     */
+    async restartMachineRunner(machineId: string, namespace: string): Promise<
+        | { type: 'success'; message: string }
+        | { type: 'error'; message: string; code: 'machine_not_found' | 'machine_offline' | 'restart_unsupported' | 'restart_failed' }
+    > {
+        const machine = this.machineCache.getMachineByNamespace(machineId, namespace)
+            ?? this.machineCache.refreshMachine(machineId)
+        if (!machine || machine.namespace !== namespace) {
+            return { type: 'error', message: 'Machine not found', code: 'machine_not_found' }
+        }
+        if (!machine.active) {
+            return { type: 'error', message: 'Machine is offline', code: 'machine_offline' }
+        }
+        if (machine.metadata?.supervisedRestart !== true) {
+            return {
+                type: 'error',
+                message: 'Restart requires a supervised runner (HAPI_RUNNER_SUPERVISED=1); unsupervised stop would leave the host offline',
+                code: 'restart_unsupported',
+            }
+        }
+        try {
+            await this.rpcGateway.stopRunner(machineId)
+            return { type: 'success', message: 'Runner stop requested; supervisor will relaunch' }
+        } catch (error) {
+            return {
+                type: 'error',
+                message: error instanceof Error ? error.message : 'Failed to restart runner',
+                code: 'restart_failed',
+            }
+        }
     }
 
     private expireInactive(): void {
@@ -2785,11 +2825,15 @@ async uploadScratchlistAttachment(
                     }
                 }
             } catch (error) {
-                return {
-                    type: 'error',
-                    message: error instanceof Error ? error.message : 'Failed to inspect Cursor chat store',
-                    code: 'resume_failed'
-                }
+                // Soft-fail on probe skew / missing handler (#1084): definitive
+                // onDisk:false still blocks above; probe errors must not be
+                // reported as missing chat data.
+                const message = error instanceof Error ? error.message : 'Failed to inspect Cursor chat store'
+                console.warn('[resume] Cursor chat-store probe failed; proceeding with reopen attempt', {
+                    sessionId: access.sessionId,
+                    machineId: targetMachine.id,
+                    message
+                })
             }
         }
 
